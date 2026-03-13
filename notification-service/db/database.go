@@ -39,17 +39,17 @@ func Connect() error {
 		if err == nil {
 			break
 		}
-		log.Printf("⏳ Menunggu PostgreSQL... percobaan %d/10", i+1)
+		log.Printf("Waiting for PostgreSQL... tries #%d/10", i+1)
 		time.Sleep(3 * time.Second)
 	}
 	if err != nil {
-		return fmt.Errorf("gagal konek ke database: %w", err)
+		return fmt.Errorf("Failed to connect to database: %w", err)
 	}
 
 	if err := DB.AutoMigrate(&Notification{}); err != nil {
-		return fmt.Errorf("gagal migrate: %w", err)
+		return fmt.Errorf("Failed to migrate: %w", err)
 	}
 
-	log.Println("✅ Notification Service terhubung ke PostgreSQL")
+	log.Println("Notification Service Connected to PostgreSQL")
 	return nil
 }

@@ -53,19 +53,19 @@ func StartConsumer(url string) error {
 		return err
 	}
 
-	log.Println("📦 Inventory Service siap mendengarkan event order.created...")
+	log.Println("Inventory Service is listening order.created...")
 
 	go func() {
 		for msg := range msgs {
 			var event orderEvent
 			if err := json.Unmarshal(msg.Body, &event); err != nil {
-				log.Printf("❌ Gagal parse event: %v", err)
+				log.Printf("Failed to parse event: %v", err)
 				msg.Nack(false, false)
 				continue
 			}
 
 			if err := processStockDeduction(event); err != nil {
-				log.Printf("❌ Gagal proses stok: %v", err)
+				log.Printf("Failed to process stocks: %v", err)
 				msg.Nack(false, true)
 				continue
 			}
@@ -82,8 +82,8 @@ func processStockDeduction(event orderEvent) error {
 		var product db.Product
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&product, "id = ?", event.ProductID).Error; err != nil {
-			saveLog(tx, event, 0, 0, "produk tidak ditemukan")
-			log.Printf("⚠️  Produk %s tidak ditemukan", event.ProductID)
+			saveLog(tx, event, 0, 0, "product not found")
+			log.Printf("Produk %s not founfd", event.ProductID)
 			return nil
 		}
 
@@ -91,15 +91,15 @@ func processStockDeduction(event orderEvent) error {
 		var deducted int
 
 		if product.Stock < event.Quantity {
-			note = "stok tidak mencukupi"
-			log.Printf("Stok %s tidak cukup! Tersedia: %d, Diminta: %d",
+			note = "insufficient stock"
+			log.Printf("Insufficient stock of %s ! Available: %d, Requested: %d",
 				event.ProductID, product.Stock, event.Quantity)
 		} else {
 			product.Stock -= event.Quantity
 			deducted = event.Quantity
-			note = "stok berhasil dikurangi"
+			note = "stocks decremented"
 			tx.Save(&product)
-			log.Printf("Stok %s dikurangi %d, sisa: %d",
+			log.Printf("Stock of %s reduced by %d, remaining: %d",
 				event.ProductID, event.Quantity, product.Stock)
 		}
 
