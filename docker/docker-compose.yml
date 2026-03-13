@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: bytemart-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: bytemart
+      RABBITMQ_DEFAULT_PASS: arzaka22
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bytemart-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: bytemart
+      POSTGRES_PASSWORD: arzaka22
+      POSTGRES_DB: bytemart_orders
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
